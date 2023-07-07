@@ -184,7 +184,6 @@ validate_port() {
         fi
     fi
 }
-
 ########################
 # Validate if the provided argument is a valid IPv4 address
 # Arguments:
@@ -202,6 +201,32 @@ validate_ipv4() {
             && ${ip_array[2]} -le 255 && ${ip_array[3]} -le 255 ]]
         stat=$?
     fi
+    return $stat
+}
+########################
+# Validate if the provided argument is a valid IPv6 address
+# Arguments:
+#   $1 - IP to validate
+# Returns:
+#   Boolean
+#########################
+validate_ipv6() {
+    local ip="${1:?ip is missing}"
+    local stat=1
+
+    if [[ $ip =~ ^[0-9a-fA-F]{1,4}(:[0-9a-fA-F]{1,4}){7}$ ]]; then
+        read -r -a ip_array <<< "$(IFS=':' read -ra arr <<< "$ip" && echo "${arr[@]}")"
+        for segment in "${ip_array[@]}"; do
+            if [[ $segment =~ ^[0-9a-fA-F]{1,4}$ && $((16#$segment)) -le 65535 ]]; then
+                continue
+            else
+                stat=1
+                break
+            fi
+        done
+        stat=0
+    fi
+
     return $stat
 }
 
